@@ -82,7 +82,6 @@ aWid  = input.string("1px",  "", options=["1px","2px","3px","4px","5px"], inline
 //  Inputs: HTF Candles  (higher-timeframe candles drawn to the right of price action)
 // ============================================================
 gHtfC = "HTF Candles"
-htfPad       = input.int(30, "Padding from last bar", minval=0, group=gHtfC, tooltip="Bars of gap between live price action and the first HTF block")
 htfWidth     = 2  // candle body width in bars (fixed)
 htfGap       = 1  // spacing between candles in bars (fixed)
 htfBull      = input.color(#808080, "Bull / Bear / Border / Wick", inline="hc", group=gHtfC)
@@ -92,21 +91,23 @@ htfWickCol   = input.color(#000000, "", inline="hc", group=gHtfC)
 htfShowLabel = input.bool(true, "Timeframe labels", group=gHtfC)
 
 // Up to 5 HTF sets — each: enable | timeframe | candle count. Uniform "HTFn" labels keep rows aligned.
-h1On = input.bool(false, "HTF1⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀", inline="s1", group=gHtfC, tooltip="Default: Weekly")
+h1On = input.bool(false, "HTF1⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀", inline="s1", group=gHtfC, tooltip="Default: Weekly")
 h1Tf = input.timeframe("W",   "", inline="s1", group=gHtfC)
 h1N  = input.int(4, "", minval=1, maxval=50, inline="s1", group=gHtfC)
-h2On = input.bool(true,  "HTF2⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀", inline="s2", group=gHtfC, tooltip="Default: Daily")
+h2On = input.bool(true,  "HTF2⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀", inline="s2", group=gHtfC, tooltip="Default: Daily")
 h2Tf = input.timeframe("D",   "", inline="s2", group=gHtfC)
 h2N  = input.int(1, "", minval=1, maxval=50, inline="s2", group=gHtfC)
-h3On = input.bool(true,  "HTF3⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀", inline="s3", group=gHtfC, tooltip="Default: 4H")
+h3On = input.bool(true,  "HTF3⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀", inline="s3", group=gHtfC, tooltip="Default: 4H")
 h3Tf = input.timeframe("240", "", inline="s3", group=gHtfC)
 h3N  = input.int(3, "", minval=1, maxval=50, inline="s3", group=gHtfC)
-h4On = input.bool(true,  "HTF4⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀", inline="s4", group=gHtfC, tooltip="Default: 1H")
+h4On = input.bool(true,  "HTF4⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀", inline="s4", group=gHtfC, tooltip="Default: 1H")
 h4Tf = input.timeframe("60",  "", inline="s4", group=gHtfC)
 h4N  = input.int(5, "", minval=1, maxval=50, inline="s4", group=gHtfC)
-h5On = input.bool(false, "HTF5⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀", inline="s5", group=gHtfC, tooltip="Default: 15m")
+h5On = input.bool(false, "HTF5⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀", inline="s5", group=gHtfC, tooltip="Default: 15m")
 h5Tf = input.timeframe("15",  "", inline="s5", group=gHtfC)
 h5N  = input.int(8, "", minval=1, maxval=50, inline="s5", group=gHtfC)
+
+htfPad = input.int(30, "Padding from last bar", minval=0, group=gHtfC, tooltip="Bars of gap between live price action and the first HTF block")
 
 // ============================================================
 //  Inputs: Notes (top center)
