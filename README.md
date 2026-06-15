@@ -6,7 +6,7 @@ ICT-style TradingView indicator (Pine Script v6).
 
 - **Pine v6**, timezone сонгомжтой (General → Timezone, default `America/New_York`; `Exchange` = symbol-ийн бирж)
 - Зөвхөн **intraday** TF (1m–30m)-д OPL ажиллана
-- Бүх timeframe-д HTF Opening Gaps болон Notes/Checklist ажиллана
+- Бүх timeframe-д HTF Opening Gaps, HTF Candles, Notes/Checklist ажиллана
 
 ## Sections
 
@@ -45,6 +45,17 @@ ICT-style TradingView indicator (Pine Script v6).
 - 5 ширхэг checklist item, тус бүрд label + checkbox
 - ☑ ногоон = OK, ☐ саарал = pending
 - Default labels: Bias confirmed / Liquidity taken / FVG aligned / Entry confirmed / Risk OK
+
+### HTF CANDLES
+Дээд timeframe-ийн лаануудыг price action-ы баруун талд зурна (timeframe солихгүйгээр HTF структур харах):
+
+- `request.security`-ээр HTF OHLC татаж, сүүлийн **N** (default 10) laaг box (body) + line (wick)-ээр зурна
+- Хамгийн баруун лаа = одоо **үүсэж буй** (live) HTF лаа, бодит цагт шинэчлэгдэнэ
+- Тохиргоо: timeframe, лааны тоо, padding (live бараас зай), өргөн, лаа хоорондын зай, bull/bear/wick өнгө
+- **OHLC trace**: сүүлийн лааны O/H/L/C-г price action руу цэгэн шугамаар сунгана
+- **Label**: блокийн дээр HTF timeframe-ийн нэр
+- Зөвхөн `barstate.islast`-д бүгдийг устгаад дахин зурдаг тул object тоо тогтмол (N body + N wick + 4 trace + 1 label)
+- ⚠️ HTF-ээ chart TF-ээс **өндөр** сонго (жишээ chart 5m → HTF 1H)
 
 ## Хэрэглэх заавар
 
