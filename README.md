@@ -51,7 +51,7 @@ ICT-style TradingView indicator (Pine Script v6).
 
 - `request.security`-ээр HTF OHLC татаж, сүүлийн **N** (default 10) laaг box (body) + line (wick)-ээр зурна
 - Хамгийн баруун лаа = одоо **үүсэж буй** (live) HTF лаа, бодит цагт шинэчлэгдэнэ
-- Тохиргоо: timeframe, лааны тоо, padding (live бараас зай), өргөн, лаа хоорондын зай, bull/bear/wick өнгө
+- Тохиргоо: timeframe, лааны тоо, padding (live бараас зай), bull/bear/wick өнгө (лааны өргөн=2, зай=1 hardcode)
 - **OHLC trace**: сүүлийн лааны O/H/L/C-г price action руу цэгэн шугамаар сунгана
 - **Label**: блокийн дээр HTF timeframe-ийн нэр
 - Зөвхөн `barstate.islast`-д бүгдийг устгаад дахин зурдаг тул object тоо тогтмол (N body + N wick + 4 trace + 1 label)
