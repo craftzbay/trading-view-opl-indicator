@@ -1,6 +1,6 @@
 //@version=6
-// Indicator version: v6.5  (bump on every change; @version above is the Pine language version)
-indicator("Opening Levels — Gaps + OPL v6.5", "OL", overlay=true,
+// Indicator version: v6.6  (bump on every change; @version above is the Pine language version)
+indicator("Opening Levels — Gaps + OPL v6.6", "OL", overlay=true,
           max_lines_count=500, max_boxes_count=500, max_labels_count=100)
 
 // ============================================================
@@ -376,6 +376,7 @@ if barstate.islast
     labXs  = array.new<int>()        // label x-centres, drawn after the loop at one level
     labTxt = array.new<string>()
     float gTop = na                  // global highest high across all blocks
+    float gBot = na                  // global lowest low (for label vertical offset)
     for s in htfSets
         // stop if we're out of future-draw room (Pine caps lines/boxes at ~+500 bars)
         if s.show and array.size(s.O) > 0 and base - bar_index < 470
@@ -396,6 +397,7 @@ if barstate.islast
                 array.push(htfWicks, line.new(mid, h, mid, l, xloc=xloc.bar_index, color=htfWickCol, width=1))
                 array.push(htfBodies, box.new(left, math.max(o, c), right, math.min(o, c), xloc=xloc.bar_index, bgcolor=col, border_color=htfBorderCol))
                 gTop := na(gTop) ? h : math.max(gTop, h)
+                gBot := na(gBot) ? l : math.min(gBot, l)
 
             lLeft = base + (drawN - 1) * step
             if htfShowLabel
@@ -406,10 +408,11 @@ if barstate.islast
 
             base := lLeft + htfWidth + setGap
 
-    // all block labels on one horizontal level (the global top), so they line up
+    // all block labels on one horizontal level, lifted a little above the global top
     if htfShowLabel and not na(gTop)
+        labY = gTop + (gTop - gBot) * 0.05
         for k = 0 to array.size(labXs) - 1
-            array.push(htfLbls, label.new(array.get(labXs, k), gTop, text=array.get(labTxt, k), xloc=xloc.bar_index, yloc=yloc.price, style=label.style_label_down, color=color.new(color.gray, 70), textcolor=chart.fg_color, size=size.small))
+            array.push(htfLbls, label.new(array.get(labXs, k), labY, text=array.get(labTxt, k), xloc=xloc.bar_index, yloc=yloc.price, style=label.style_label_down, color=color.new(color.gray, 70), textcolor=chart.fg_color, size=size.small))
 
 // ============================================================
 //  Notes (top center)
