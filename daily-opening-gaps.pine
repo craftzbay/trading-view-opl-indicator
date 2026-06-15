@@ -112,6 +112,13 @@ c5Tx = input.string("Risk OK",         "", inline="c5", group=gSetup)
 toLineStyle(string s) => s == "Dashed" ? line.style_dashed : s == "Dotted" ? line.style_dotted : line.style_solid
 toWidth(string s)     => s == "5px" ? 5 : s == "4px" ? 4 : s == "3px" ? 3 : s == "2px" ? 2 : 1
 
+pad2(int n) => (n < 10 ? "0" : "") + str.tostring(n)
+// 1-minute session window for an open time, e.g. (8,30) -> "0830-0831:1234567"
+oplSession(int hr, int mn) =>
+    s = hr * 60 + mn
+    e = s + 1
+    pad2(int(s / 60)) + pad2(s % 60) + "-" + pad2(int(e / 60)) + pad2(e % 60) + ":1234567"
+
 // ============================================================
 //  Time / timezone
 // ============================================================
@@ -190,18 +197,18 @@ type Opl
 
 updateOpl(Opl o) =>
     if o.show and intraday
-        // Date components must be read in the SAME timezone we build the timestamp in,
-        // otherwise an exchange-vs-selected-tz date roll shifts the open time by a day
-        // and the line anchors to the wrong bar (e.g. the new-day open).
-        openTs  = timestamp(Timezone, year(time, Timezone), month(time, Timezone), dayofmonth(time, Timezone), o.hr, o.mn, 0)
-        crossed = time >= openTs and (na(time[1]) or time[1] < openTs)
-        if crossed
+        // Detect the session-open bar via a 1-minute session window evaluated in the
+        // selected timezone. This only matches the actual open bar (e.g. 08:30) and never
+        // a post-gap resume bar, so weekend/maintenance gaps can't false-trigger it.
+        t = time(timeframe.period, oplSession(o.hr, o.mn), Timezone)
+        if not na(t) and na(t[1])
             if not na(o.ln)
                 line.delete(o.ln)
             if not na(o.lb)
                 label.delete(o.lb)
-            o.ln := line.new(openTs, open, openTs, open, xloc=xloc.bar_time, color=o.col, style=o.sty, width=o.wid)
-            o.lb := label.new(openTs, open, xloc=xloc.bar_time, text=" " + o.tag + " ", color=color.new(color.black, 100), textcolor=color.black, style=label.style_label_left, size=size.normal)
+            // Anchor to the real open bar — no date math, no gap edge cases.
+            o.ln := line.new(time, open, time, open, xloc=xloc.bar_time, color=o.col, style=o.sty, width=o.wid)
+            o.lb := label.new(time, open, xloc=xloc.bar_time, text=" " + o.tag + " ", color=color.new(color.black, 100), textcolor=color.black, style=label.style_label_left, size=size.normal)
 
 var array<Opl> opls = array.new<Opl>()
 if barstate.isfirst

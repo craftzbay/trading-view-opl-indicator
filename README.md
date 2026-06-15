@@ -33,8 +33,8 @@ ICT-style TradingView indicator (Pine Script v6).
 | 13:30 | OFF | `01:30` |
 
 - Зөвхөн **intraday** (`multiplier ≤ 31`)-д ажиллана
-- Session open-ийг `time`-ийн crossing-аар илрүүлнэ → ямар ч intraday TF дээр найдвартай (зэрэгцээгүй TF дээр ч хамгийн ойрын бараар зурна)
-- Шугамын баруун төгсгөл `timenow + 1hr` (Terminus)-д татагдана → бүх label нэг баганад тэгшилнэ
+- Session open-ийг 1-минутын session window (`time(tf, "0830-0831:1234567", TZ)`)-оор илрүүлнэ → зөвхөн **жинхэнэ open бар** дээр асна, gap-ийн дараах resume бар дээр **худал асахгүй**
+- Шугамыг тэр барын `time`/`open` дээр зангидна (огнооны тооцоо байхгүй); баруун төгсгөл `timenow + 1hr` (Terminus)-д татагдана → label-ууд нэг баганад тэгшилнэ
 
 ### NOTES (Top Center)
 - 2 мөрт текст: Title (size.huge) + Subtitle (size.normal)
@@ -66,5 +66,5 @@ indicator/
 
 - Indent rules: үргэлжлэлийн мөр 4-ийн үржвэр зайтай биш байх (options массив 5 зайтай)
 - `bool` strict — `na` болохгүй, explicit cast хэрэгтэй
-- Session цагийг `timestamp(TZ, year(time,TZ), month(time,TZ), dayofmonth(time,TZ), hr, mn, 0)` + crossing-аар илрүүлнэ — огноог **заавал тухайн TZ-оор** уншина (биржийн tz-той хольвол өдөр гулсаж шугам буруу бар дээр ангидна)
+- Session-ийг `time(tf, "HHMM-HHMM:1234567", TZ)` window-оор илрүүлнэ — crossing (`time >= openTs`) ашиглаж **болохгүй**: gap дээр resume бар дээр худал асаж шугамыг буруу нээлт рүү зангиддаг
 - OPL объектуудыг `var array<Opl>`-д хадгалж, `Opl` UDT-ийн line/label field-ийг in-place мутаци хийдэг
