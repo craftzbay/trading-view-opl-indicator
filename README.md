@@ -66,5 +66,5 @@ indicator/
 
 - Indent rules: үргэлжлэлийн мөр 4-ийн үржвэр зайтай биш байх (options массив 5 зайтай)
 - `bool` strict — `na` болохгүй, explicit cast хэрэгтэй
-- Session цагийг `timestamp(TZ, year, month, day, hour, min, sec)` + crossing-аар илрүүлнэ
+- Session цагийг `timestamp(TZ, year(time,TZ), month(time,TZ), dayofmonth(time,TZ), hr, mn, 0)` + crossing-аар илрүүлнэ — огноог **заавал тухайн TZ-оор** уншина (биржийн tz-той хольвол өдөр гулсаж шугам буруу бар дээр ангидна)
 - OPL объектуудыг `var array<Opl>`-д хадгалж, `Opl` UDT-ийн line/label field-ийг in-place мутаци хийдэг

@@ -190,7 +190,10 @@ type Opl
 
 updateOpl(Opl o) =>
     if o.show and intraday
-        openTs  = timestamp(Timezone, year, month, dayofmonth, o.hr, o.mn, 0)
+        // Date components must be read in the SAME timezone we build the timestamp in,
+        // otherwise an exchange-vs-selected-tz date roll shifts the open time by a day
+        // and the line anchors to the wrong bar (e.g. the new-day open).
+        openTs  = timestamp(Timezone, year(time, Timezone), month(time, Timezone), dayofmonth(time, Timezone), o.hr, o.mn, 0)
         crossed = time >= openTs and (na(time[1]) or time[1] < openTs)
         if crossed
             if not na(o.ln)
