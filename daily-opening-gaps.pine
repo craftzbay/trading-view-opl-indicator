@@ -88,8 +88,9 @@ htfCount     = input.int(10, "Candle count", minval=1, maxval=50, group=gHtfC)
 htfPad       = input.int(8,  "Padding from last bar", minval=0, group=gHtfC, tooltip="Bars of gap between live price action and the HTF candles")
 htfWidth     = 2  // candle body width in bars (fixed)
 htfGap       = 1  // spacing between candles in bars (fixed)
-htfBull      = input.color(#26a69a, "Bull / Bear / Wick", inline="hc", group=gHtfC)
+htfBull      = input.color(#26a69a, "Bull / Bear / Border / Wick", inline="hc", group=gHtfC)
 htfBear      = input.color(#ef5350, "", inline="hc", group=gHtfC)
+htfBorderCol = input.color(#26a69a, "", inline="hc", group=gHtfC)
 htfWickCol   = input.color(#787b86, "", inline="hc", group=gHtfC)
 htfShowTrace = input.bool(true, "OHLC trace lines (latest candle)", group=gHtfC)
 htfShowLabel = input.bool(true, "Timeframe label", group=gHtfC)
@@ -316,7 +317,7 @@ if barstate.islast and showHtfC and array.size(aO) > 0
         mid   = int((left + right) / 2)
         col   = c >= o ? htfBull : htfBear
         array.push(htfWicks, line.new(mid, h, mid, l, xloc=xloc.bar_index, color=htfWickCol, width=1))
-        array.push(htfBodies, box.new(left, math.max(o, c), right, math.min(o, c), xloc=xloc.bar_index, bgcolor=col, border_color=col))
+        array.push(htfBodies, box.new(left, math.max(o, c), right, math.min(o, c), xloc=xloc.bar_index, bgcolor=col, border_color=htfBorderCol))
         topY := na(topY) ? h : math.max(topY, h)
 
     // OHLC traces from the newest (rightmost) HTF candle back to live price action
