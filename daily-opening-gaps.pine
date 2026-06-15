@@ -2,114 +2,149 @@
 indicator("Opening Levels — Gaps + OPL", "OL", overlay=true,
           max_lines_count=500, max_boxes_count=500, max_labels_count=100)
 
-// ---------- Inputs: HTF Opening Gaps ----------
+// ============================================================
+//  Inputs: General
+// ============================================================
+gGen = "General"
+tzInput = input.string("America/New_York", "Timezone", group=gGen, options=[
+     "Exchange",
+     "UTC",
+     "America/New_York",
+     "America/Chicago",
+     "America/Denver",
+     "America/Los_Angeles",
+     "Europe/London",
+     "Europe/Berlin",
+     "Europe/Moscow",
+     "Asia/Dubai",
+     "Asia/Kolkata",
+     "Asia/Shanghai",
+     "Asia/Hong_Kong",
+     "Asia/Singapore",
+     "Asia/Tokyo",
+     "Asia/Ulaanbaatar",
+     "Australia/Sydney"],
+     tooltip="OPL-ийн open цаг болон HTF gap-ийн өдөр/долоо хоног/сарын хил энэ timezone-оор тооцогдоно. 'Exchange' = графикийн symbol-ийн биржийн timezone.")
+
+// ============================================================
+//  Inputs: HTF Opening Gaps
+// ============================================================
 gHtf = "HTF Opening Gaps"
 
-showMonthly    = input.bool(true,         "",       inline="gm", group=gHtf, tooltip="Monthly Opening Gap (previous month close to current month open)")
-monthlyName    = input.string("MONTHLY",  "",       inline="gm", group=gHtf)
-monthlyColor   = input.color(#4a148c,     "",       inline="gm", group=gHtf)
-monthlyStyleIn = input.string("Solid",    "",       options=["Solid","Dashed","Dotted"], inline="gm", group=gHtf)
-monthlyWidthIn = input.string("1px",      "",       options=["1px","2px","3px","4px"],   inline="gm", group=gHtf)
+showMonthly    = input.bool(true,        "", inline="gm", group=gHtf, tooltip="Monthly Opening Gap (previous month close → current month open)")
+monthlyName    = input.string("MONTHLY", "", inline="gm", group=gHtf)
+monthlyColor   = input.color(#4a148c,    "", inline="gm", group=gHtf)
+monthlyStyleIn = input.string("Solid",   "", options=["Solid","Dashed","Dotted"], inline="gm", group=gHtf)
+monthlyWidthIn = input.string("1px",     "", options=["1px","2px","3px","4px"],   inline="gm", group=gHtf)
 
-showWeekly     = input.bool(true,         "",       inline="gw", group=gHtf, tooltip="Weekly Opening Gap (previous week close to current week open)")
-weeklyName     = input.string("WEEKLY",   "",       inline="gw", group=gHtf)
-weeklyColor    = input.color(#0c3299,     "",       inline="gw", group=gHtf)
-weeklyStyleIn  = input.string("Solid",    "",       options=["Solid","Dashed","Dotted"], inline="gw", group=gHtf)
-weeklyWidthIn  = input.string("1px",      "",       options=["1px","2px","3px","4px"],   inline="gw", group=gHtf)
+showWeekly     = input.bool(true,        "", inline="gw", group=gHtf, tooltip="Weekly Opening Gap (previous week close → current week open)")
+weeklyName     = input.string("WEEKLY",  "", inline="gw", group=gHtf)
+weeklyColor    = input.color(#0c3299,    "", inline="gw", group=gHtf)
+weeklyStyleIn  = input.string("Solid",   "", options=["Solid","Dashed","Dotted"], inline="gw", group=gHtf)
+weeklyWidthIn  = input.string("1px",     "", options=["1px","2px","3px","4px"],   inline="gw", group=gHtf)
 
-showDaily      = input.bool(true,         "",       inline="gd", group=gHtf, tooltip="Daily Opening Gap (previous day close to current day open)")
-dailyName      = input.string("DAILY",    "",       inline="gd", group=gHtf)
-dailyColor     = input.color(#006064,     "",       inline="gd", group=gHtf)
-dailyStyleIn   = input.string("Solid",    "",       options=["Solid","Dashed","Dotted"], inline="gd", group=gHtf)
-dailyWidthIn   = input.string("1px",      "",       options=["1px","2px","3px","4px"],   inline="gd", group=gHtf)
+showDaily      = input.bool(true,        "", inline="gd", group=gHtf, tooltip="Daily Opening Gap (previous day close → current day open)")
+dailyName      = input.string("DAILY",   "", inline="gd", group=gHtf)
+dailyColor     = input.color(#006064,    "", inline="gd", group=gHtf)
+dailyStyleIn   = input.string("Solid",   "", options=["Solid","Dashed","Dotted"], inline="gd", group=gHtf)
+dailyWidthIn   = input.string("1px",     "", options=["1px","2px","3px","4px"],   inline="gd", group=gHtf)
 
-// ---------- Inputs: Opening Price Lines (TAKEN AS-IS FROM REFERENCE) ----------
-ShowMOPP    = input.bool   (title="", defval=true,  inline="MOPP",   group="Opening Price Lines", tooltip="00:00 AM")
-txt13       = input.string ("MIDNIGHT",  title="",  inline="MOPP",   group="Opening Price Lines")
-ShowNYOPP   = input.bool   (title="", defval=true,  inline="NYOPP",  group="Opening Price Lines", tooltip="08:30 AM")
-txt17       = input.string ("NEW YORK",  title="",  inline="NYOPP",  group="Opening Price Lines")
-ShowEOPP    = input.bool   (title="", defval=true,  inline="EOPP",   group="Opening Price Lines", tooltip="09:30 AM")
-txt18       = input.string ("EQUITIES",  title="",  inline="EOPP",   group="Opening Price Lines")
-ShowAFTPP   = input.bool   (title="", defval=false, inline="AFTOPP", group="Opening Price Lines", tooltip="01:30 PM")
-txt1330     = input.string ("AFTERNOON", title="",  inline="AFTOPP", group="Opening Price Lines")
+// ============================================================
+//  Inputs: Opening Price Lines  (one row each: show | label | color | style | width)
+// ============================================================
+gOpl = "Opening Price Lines"
 
-MOPColP     = input.color  (#0c3299, "", inline="MOPP",   group="Opening Price Lines")
-NYOPColP    = input.color  (#0c3299, "", inline="NYOPP",  group="Opening Price Lines")
-EOPColP     = input.color  (#0c3299, "", inline="EOPP",   group="Opening Price Lines")
-AFTOPColP   = input.color  (#0c3299, "", inline="AFTOPP", group="Opening Price Lines")
+mShow = input.bool(true,    "", inline="m", group=gOpl, tooltip="00:00 — Midnight open")
+mTag  = input.string("00:00","", inline="m", group=gOpl)
+mCol  = input.color(#0c3299,"", inline="m", group=gOpl)
+mSty  = input.string("Solid","", options=["Solid","Dashed","Dotted"], inline="m", group=gOpl)
+mWid  = input.string("1px",  "", options=["1px","2px","3px","4px","5px"], inline="m", group=gOpl)
 
-MOPLS       = input.string ("Solid", "", options=["Solid","Dashed","Dotted"], inline="MOPP",   group="Opening Price Lines")
-NYOPLS      = input.string ("Solid", "", options=["Solid","Dashed","Dotted"], inline="NYOPP",  group="Opening Price Lines")
-EOPLS       = input.string ("Solid", "", options=["Solid","Dashed","Dotted"], inline="EOPP",   group="Opening Price Lines")
-AFTOPLS     = input.string ("Solid", "", options=["Solid","Dashed","Dotted"], inline="AFTOPP", group="Opening Price Lines")
+nShow = input.bool(true,    "", inline="n", group=gOpl, tooltip="08:30 — New York open")
+nTag  = input.string("08:30","", inline="n", group=gOpl)
+nCol  = input.color(#0c3299,"", inline="n", group=gOpl)
+nSty  = input.string("Solid","", options=["Solid","Dashed","Dotted"], inline="n", group=gOpl)
+nWid  = input.string("1px",  "", options=["1px","2px","3px","4px","5px"], inline="n", group=gOpl)
 
-i_MOPLW     = input.string ("1px", "", options=["1px","2px","3px","4px","5px"], inline="MOPP",   group="Opening Price Lines")
-i_NYOPLW    = input.string ("1px", "", options=["1px","2px","3px","4px","5px"], inline="NYOPP",  group="Opening Price Lines")
-i_EOPLW     = input.string ("1px", "", options=["1px","2px","3px","4px","5px"], inline="EOPP",   group="Opening Price Lines")
-i_AFTOPLW   = input.string ("1px", "", options=["1px","2px","3px","4px","5px"], inline="AFTOPP", group="Opening Price Lines")
+eShow = input.bool(true,    "", inline="e", group=gOpl, tooltip="09:30 — Equities open")
+eTag  = input.string("09:30","", inline="e", group=gOpl)
+eCol  = input.color(#0c3299,"", inline="e", group=gOpl)
+eSty  = input.string("Solid","", options=["Solid","Dashed","Dotted"], inline="e", group=gOpl)
+eWid  = input.string("1px",  "", options=["1px","2px","3px","4px","5px"], inline="e", group=gOpl)
 
-// ---------- Helpers ----------
-toLineStyle(s) => s == "Dashed" ? line.style_dashed : s == "Dotted" ? line.style_dotted : line.style_solid
-toWidth(s)     => s == "2px" ? 2 : s == "3px" ? 3 : s == "4px" ? 4 : 1
+aShow = input.bool(false,   "", inline="a", group=gOpl, tooltip="13:30 — Afternoon open")
+aTag  = input.string("01:30","", inline="a", group=gOpl)
+aCol  = input.color(#0c3299,"", inline="a", group=gOpl)
+aSty  = input.string("Solid","", options=["Solid","Dashed","Dotted"], inline="a", group=gOpl)
+aWid  = input.string("1px",  "", options=["1px","2px","3px","4px","5px"], inline="a", group=gOpl)
 
-dailyStyle   = toLineStyle(dailyStyleIn)
-weeklyStyle  = toLineStyle(weeklyStyleIn)
-monthlyStyle = toLineStyle(monthlyStyleIn)
-dailyWidth   = toWidth(dailyWidthIn)
-weeklyWidth  = toWidth(weeklyWidthIn)
-monthlyWidth = toWidth(monthlyWidthIn)
+// ============================================================
+//  Inputs: Notes (top center)
+// ============================================================
+gNotes     = "Notes"
+showTitle  = input.bool(true,         "", inline="t", group=gNotes)
+titleText  = input.string("Title",    "", inline="t", group=gNotes)
+titleColor = input.color(#000000,     "", inline="t", group=gNotes)
+showSub    = input.bool(true,         "", inline="s", group=gNotes)
+subText    = input.string("Subtitle", "", inline="s", group=gNotes)
+subColor   = input.color(#000000,     "", inline="s", group=gNotes)
 
-// Reference's per-line style/width (matches reference exactly)
-MOPLSS    = MOPLS=="Solid"   ? line.style_solid : MOPLS   == "Dotted" ? line.style_dotted : line.style_dashed
-NYOPLSS   = NYOPLS=="Solid"  ? line.style_solid : NYOPLS  == "Dotted" ? line.style_dotted : line.style_dashed
-EOPLSS    = EOPLS=="Solid"   ? line.style_solid : EOPLS   == "Dotted" ? line.style_dotted : line.style_dashed
-AFTOPLSS  = AFTOPLS=="Solid" ? line.style_solid : AFTOPLS == "Dotted" ? line.style_dotted : line.style_dashed
+// ============================================================
+//  Inputs: Setup Checklist (top right)
+// ============================================================
+gSetup    = "Setup Checklist"
+showSetup = input.bool(true, "Show checklist", group=gSetup)
 
-MOPPLW    = i_MOPLW=="1px"   ? 1 : i_MOPLW   == "2px" ? 2 : i_MOPLW   == "3px" ? 3 : i_MOPLW   == "4px" ? 4 : 5
-NYOPPLW   = i_NYOPLW=="1px"  ? 1 : i_NYOPLW  == "2px" ? 2 : i_NYOPLW  == "3px" ? 3 : i_NYOPLW  == "4px" ? 4 : 5
-EOPPLW    = i_EOPLW=="1px"   ? 1 : i_EOPLW   == "2px" ? 2 : i_EOPLW   == "3px" ? 3 : i_EOPLW   == "4px" ? 4 : 5
-AFTOPLW   = i_AFTOPLW=="1px" ? 1 : i_AFTOPLW == "2px" ? 2 : i_AFTOPLW == "3px" ? 3 : i_AFTOPLW == "4px" ? 4 : 5
+c1On = input.bool(false,               "", inline="c1", group=gSetup)
+c1Tx = input.string("Bias confirmed",  "", inline="c1", group=gSetup)
+c2On = input.bool(false,               "", inline="c2", group=gSetup)
+c2Tx = input.string("Liquidity taken", "", inline="c2", group=gSetup)
+c3On = input.bool(false,               "", inline="c3", group=gSetup)
+c3Tx = input.string("FVG aligned",     "", inline="c3", group=gSetup)
+c4On = input.bool(false,               "", inline="c4", group=gSetup)
+c4Tx = input.string("Entry confirmed", "", inline="c4", group=gSetup)
+c5On = input.bool(false,               "", inline="c5", group=gSetup)
+c5Tx = input.string("Risk OK",         "", inline="c5", group=gSetup)
 
-// ---------- Time setup (matches reference exactly with TZ = NY) ----------
-Timezone = "America/New_York"
-DOM = (timeframe.multiplier <= 31) and timeframe.isintraday
+// ============================================================
+//  Helpers
+// ============================================================
+toLineStyle(string s) => s == "Dashed" ? line.style_dashed : s == "Dotted" ? line.style_dotted : line.style_solid
+toWidth(string s)     => s == "5px" ? 5 : s == "4px" ? 4 : s == "3px" ? 3 : s == "2px" ? 2 : 1
 
-MidnightOpenTime  = timestamp(Timezone, year, month, dayofmonth, 0,  0,  0)
-NYOpenTime        = timestamp(Timezone, year, month, dayofmonth, 8,  30, 0)
-EquitiesOpenTime  = timestamp(Timezone, year, month, dayofmonth, 9,  30, 0)
-AfternoonOpenTime = timestamp(Timezone, year, month, dayofmonth, 13, 30, 0)
-PMEndTime         = timestamp(Timezone, year, month, dayofmonth, 16, 0,  0)
-tMidnight         = time("1", "0000-0001:1234567", Timezone)
-tNY               = time("1", "0830-0831:1234567", Timezone)
-tEQ               = time("1", "0930-0931:1234567", Timezone)
-tAFT              = time("1", "1330-1331:1234567", Timezone)
+// ============================================================
+//  Time / timezone
+// ============================================================
+Timezone = tzInput == "Exchange" ? syminfo.timezone : tzInput
+intraday = timeframe.isintraday and timeframe.multiplier <= 31
 
-// HTF gap detections
 isNewDay   = ta.change(time("1D")) != 0
 isNewWeek  = ta.change(time("1W")) != 0
 isNewMonth = ta.change(time("1M")) != 0
 
-// ---------- Gap drawing helpers ----------
-clearGaps(raysArr, zonesArr) =>
-    for r in raysArr
+// ============================================================
+//  HTF Opening Gaps
+//  Each gap = 2 rays (top/bottom) + a 90%-transparent zone box.
+//  Daily gaps accumulate through the week (reset weekly); weekly &
+//  monthly keep only the current period.
+//  Priority on overlap: MONTHLY > WEEKLY > DAILY.
+// ============================================================
+clearGaps(array<line> rays, array<box> zones) =>
+    for r in rays
         line.delete(r)
-    for b in zonesArr
+    for b in zones
         box.delete(b)
-    array.clear(raysArr)
-    array.clear(zonesArr)
+    array.clear(rays)
+    array.clear(zones)
 
-drawGap(prevClose, todayOpen, col, wid, stl, raysArr, zonesArr) =>
-    if prevClose != todayOpen
-        topPx = math.max(prevClose, todayOpen)
-        botPx = math.min(prevClose, todayOpen)
-        rTop = line.new(bar_index, topPx, bar_index + 1, topPx, extend=extend.right, color=col, width=wid, style=stl)
-        rBot = line.new(bar_index, botPx, bar_index + 1, botPx, extend=extend.right, color=col, width=wid, style=stl)
-        array.push(raysArr, rTop)
-        array.push(raysArr, rBot)
-        zone = box.new(bar_index, topPx, bar_index + 1, botPx, extend=extend.right, bgcolor=color.new(col, 90), border_color=na)
-        array.push(zonesArr, zone)
+drawGap(float prevClose, float openPx, color col, int wid, string sty, array<line> rays, array<box> zones) =>
+    if prevClose != openPx
+        top = math.max(prevClose, openPx)
+        bot = math.min(prevClose, openPx)
+        array.push(rays, line.new(bar_index, top, bar_index + 1, top, extend=extend.right, color=col, width=wid, style=sty))
+        array.push(rays, line.new(bar_index, bot, bar_index + 1, bot, extend=extend.right, color=col, width=wid, style=sty))
+        array.push(zones, box.new(bar_index, top, bar_index + 1, bot, extend=extend.right, bgcolor=color.new(col, 90), border_color=na))
 
-// ---------- HTF Opening Gaps state ----------
 var array<line> dailyRays    = array.new<line>()
 var array<box>  dailyZones   = array.new<box>()
 var array<line> weeklyRays   = array.new<line>()
@@ -123,148 +158,76 @@ weeklyFiring  = showWeekly  and isNewWeek
 if isNewWeek
     clearGaps(dailyRays, dailyZones)
 if showDaily and isNewDay and not weeklyFiring and not monthlyFiring and not na(close[1])
-    drawGap(close[1], open, dailyColor, dailyWidth, dailyStyle, dailyRays, dailyZones)
+    drawGap(close[1], open, dailyColor, toWidth(dailyWidthIn), toLineStyle(dailyStyleIn), dailyRays, dailyZones)
 
 if isNewWeek
     clearGaps(weeklyRays, weeklyZones)
 if showWeekly and isNewWeek and not monthlyFiring and not na(close[1])
-    drawGap(close[1], open, weeklyColor, weeklyWidth, weeklyStyle, weeklyRays, weeklyZones)
+    drawGap(close[1], open, weeklyColor, toWidth(weeklyWidthIn), toLineStyle(weeklyStyleIn), weeklyRays, weeklyZones)
 
 if isNewMonth
     clearGaps(monthlyRays, monthlyZones)
 if showMonthly and isNewMonth and not na(close[1])
-    drawGap(close[1], open, monthlyColor, monthlyWidth, monthlyStyle, monthlyRays, monthlyZones)
+    drawGap(close[1], open, monthlyColor, toWidth(monthlyWidthIn), toLineStyle(monthlyStyleIn), monthlyRays, monthlyZones)
 
-// ---------- Opening Price Lines (REFERENCE LOGIC, ported to v6) ----------
-var label MOPLB  = na
-var line  MOPLN  = na
-var label NYOPLB = na
-var line  NYOPLN = na
-var label EOPLB  = na
-var line  EOPLN  = na
-var line  AFTLN  = na
-var label AFTLB  = na
+// ============================================================
+//  Opening Price Lines
+//  One model for all four sessions. On the first bar that crosses
+//  the session's open time, (re)draw a horizontal ray + label at
+//  that bar's open. Terminus pins the right edge to "now" so labels
+//  stay on-screen and aligned on every intraday timeframe.
+// ============================================================
+type Opl
+    bool   show
+    int    hr
+    int    mn
+    color  col
+    string sty
+    int    wid
+    string tag
+    line   ln = na
+    label  lb = na
 
-// New York Midnight Open Price line
-var float openMidnight = 0.0
-if not na(tMidnight)
-    if na(tMidnight[1])
-        openMidnight := open
-    else
-        openMidnight := math.max(open, openMidnight)
+updateOpl(Opl o) =>
+    if o.show and intraday
+        openTs  = timestamp(Timezone, year, month, dayofmonth, o.hr, o.mn, 0)
+        crossed = time >= openTs and (na(time[1]) or time[1] < openTs)
+        if crossed
+            if not na(o.ln)
+                line.delete(o.ln)
+            if not na(o.lb)
+                label.delete(o.lb)
+            o.ln := line.new(openTs, open, openTs, open, xloc=xloc.bar_time, color=o.col, style=o.sty, width=o.wid)
+            o.lb := label.new(openTs, open, xloc=xloc.bar_time, text=" " + o.tag + " ", color=color.new(color.black, 100), textcolor=color.black, style=label.style_label_left, size=size.normal)
 
-if ShowMOPP and (openMidnight != openMidnight[1]) and DOM and barstate.isconfirmed
-    if not na(MOPLB)
-        label.delete(MOPLB)
-    if not na(MOPLN)
-        line.delete(MOPLN)
-    MOPLN := line.new(x1=tMidnight, y1=openMidnight, x2=tMidnight+86400000, xloc=xloc.bar_time, y2=openMidnight, color=MOPColP, style=MOPLSS, width=MOPPLW)
-    if dayofweek == dayofweek.friday and syminfo.type != "crypto"
-        line.set_x2(MOPLN, tMidnight+259200000)
-    MOPLB := label.new(x=tMidnight+86400000, y=openMidnight, xloc=xloc.bar_time, text=" 00:00 ", color=color.new(color.black, 100), textcolor=color.black, style=label.style_label_left, size=size.normal)
-    if dayofweek == dayofweek.friday and syminfo.type != "crypto"
-        label.set_x(MOPLB, tMidnight+259200000)
+var array<Opl> opls = array.new<Opl>()
+if barstate.isfirst
+    array.push(opls, Opl.new(mShow,  0,  0, mCol, toLineStyle(mSty), toWidth(mWid), mTag))
+    array.push(opls, Opl.new(nShow,  8, 30, nCol, toLineStyle(nSty), toWidth(nWid), nTag))
+    array.push(opls, Opl.new(eShow,  9, 30, eCol, toLineStyle(eSty), toWidth(eWid), eTag))
+    array.push(opls, Opl.new(aShow, 13, 30, aCol, toLineStyle(aSty), toWidth(aWid), aTag))
 
-// New York Opening Price Line
-if ShowNYOPP and not na(tNY) and na(tNY[1]) and DOM
-    if not na(NYOPLB)
-        label.delete(NYOPLB)
-    if not na(NYOPLN)
-        line.delete(NYOPLN)
-    NYOPLN := line.new(x1=NYOpenTime, y1=open, x2=NYOpenTime+55800000, xloc=xloc.bar_time, y2=open, color=NYOPColP, style=NYOPLSS, width=NYOPPLW)
-    if dayofweek == dayofweek.friday and syminfo.type != "crypto"
-        line.set_x2(NYOPLN, NYOpenTime+228600000)
-    NYOPLB := label.new(x=NYOpenTime+55800000, y=open, xloc=xloc.bar_time, text=" 08:30 ", color=color.new(color.black, 100), textcolor=color.black, style=label.style_label_left, size=size.normal)
-    if dayofweek == dayofweek.friday and syminfo.type != "crypto"
-        label.set_x(NYOPLB, NYOpenTime+228600000)
+for o in opls
+    updateOpl(o)
 
-// Equities Opening Price Line
-if ShowEOPP and not na(tEQ) and na(tEQ[1]) and DOM
-    if not na(EOPLB)
-        label.delete(EOPLB)
-    if not na(EOPLN)
-        line.delete(EOPLN)
-    EOPLN := line.new(x1=EquitiesOpenTime, y1=open, x2=EquitiesOpenTime+52200000, xloc=xloc.bar_time, y2=open, color=EOPColP, style=EOPLSS, width=EOPPLW)
-    if dayofweek == dayofweek.friday and syminfo.type != "crypto"
-        line.set_x2(EOPLN, EquitiesOpenTime+225000000)
-    EOPLB := label.new(x=EquitiesOpenTime+52200000, y=open, xloc=xloc.bar_time, text=" 09:30 ", color=color.new(color.black, 100), textcolor=color.black, style=label.style_label_left, size=size.normal)
-    if dayofweek == dayofweek.friday and syminfo.type != "crypto"
-        label.set_x(EOPLB, EquitiesOpenTime+225000000)
+if barstate.islast and intraday
+    rightEdge = timenow + 3600000  // now + 1h
+    for o in opls
+        if not na(o.ln)
+            line.set_x2(o.ln, rightEdge)
+            label.set_x(o.lb, rightEdge)
 
-// Afternoon Opening Price Line
-if ShowAFTPP and not na(tAFT) and na(tAFT[1]) and DOM
-    if not na(AFTLB)
-        label.delete(AFTLB)
-    if not na(AFTLN)
-        line.delete(AFTLN)
-    AFTLN := line.new(x1=AfternoonOpenTime, y1=open, x2=EquitiesOpenTime+52200000, xloc=xloc.bar_time, y2=open, color=AFTOPColP, style=AFTOPLSS, width=AFTOPLW)
-    if dayofweek == dayofweek.friday and syminfo.type != "crypto"
-        line.set_x2(AFTLN, EquitiesOpenTime+225000000)
-    AFTLB := label.new(x=EquitiesOpenTime+52200000, y=open, xloc=xloc.bar_time, text=" 01:30 ", color=color.new(color.black, 100), textcolor=color.black, style=label.style_label_left, size=size.normal)
-    if dayofweek == dayofweek.friday and syminfo.type != "crypto"
-        label.set_x(AFTLB, EquitiesOpenTime+225000000)
-
-// ---------- Terminus: keep all OPL line/label endpoints near current time (so labels stay on-screen on any TF) ----------
-if barstate.islast and DOM
-    terminusEnd = timenow + 3600000  // current real time + 1 hour
-
-    if not na(MOPLN)
-        line.set_x2(MOPLN, terminusEnd)
-    if not na(MOPLB)
-        label.set_x(MOPLB, terminusEnd)
-
-    if not na(NYOPLN)
-        line.set_x2(NYOPLN, terminusEnd)
-    if not na(NYOPLB)
-        label.set_x(NYOPLB, terminusEnd)
-
-    if not na(EOPLN)
-        line.set_x2(EOPLN, terminusEnd)
-    if not na(EOPLB)
-        label.set_x(EOPLB, terminusEnd)
-
-    if not na(AFTLN)
-        line.set_x2(AFTLN, terminusEnd)
-    if not na(AFTLB)
-        label.set_x(AFTLB, terminusEnd)
-
-// ---------- Inputs: Notes (top-center text display) ----------
-gNotes     = "Notes"
-
-showTitle  = input.bool(true,           "",         inline="t", group=gNotes)
-titleText  = input.string("Title",      "",         inline="t", group=gNotes)
-titleColor = input.color(#000000,       "",         inline="t", group=gNotes)
-
-showSub    = input.bool(true,           "",         inline="s", group=gNotes)
-subText    = input.string("Subtitle",   "",         inline="s", group=gNotes)
-subColor   = input.color(#000000,       "",         inline="s", group=gNotes)
-
-// 2-row notes table at top center
+// ============================================================
+//  Notes (top center)
+// ============================================================
 var table notesTable = table.new(position.top_center, 1, 2, bgcolor=color.new(color.black, 100), border_width=0)
 if barstate.islast
-    table.cell(notesTable, 0, 0, text=showTitle ? titleText : "", text_size=size.huge,  text_color=titleColor, text_halign=text.align_center)
-    table.cell(notesTable, 0, 1, text=showSub   ? subText   : "", text_size=size.normal, text_color=subColor, text_halign=text.align_center)
+    table.cell(notesTable, 0, 0, text=showTitle ? titleText : "", text_size=size.huge,   text_color=titleColor, text_halign=text.align_center)
+    table.cell(notesTable, 0, 1, text=showSub   ? subText   : "", text_size=size.normal, text_color=subColor,   text_halign=text.align_center)
 
-// ---------- Inputs: Setup Checklist (top-right) ----------
-gSetup    = "Setup Checklist"
-showSetup = input.bool(true, "Show checklist", group=gSetup)
-
-c1On = input.bool(false,                "", inline="c1", group=gSetup)
-c1Tx = input.string("Bias confirmed",   "", inline="c1", group=gSetup)
-
-c2On = input.bool(false,                "", inline="c2", group=gSetup)
-c2Tx = input.string("Liquidity taken",  "", inline="c2", group=gSetup)
-
-c3On = input.bool(false,                "", inline="c3", group=gSetup)
-c3Tx = input.string("FVG aligned",      "", inline="c3", group=gSetup)
-
-c4On = input.bool(false,                "", inline="c4", group=gSetup)
-c4Tx = input.string("Entry confirmed",  "", inline="c4", group=gSetup)
-
-c5On = input.bool(false,                "", inline="c5", group=gSetup)
-c5Tx = input.string("Risk OK",          "", inline="c5", group=gSetup)
-
-// Setup checklist table at top-right
+// ============================================================
+//  Setup Checklist (top right)
+// ============================================================
 var table setupTable = table.new(position.top_right, 2, 5, bgcolor=color.new(color.black, 80), border_width=0)
 
 drawCheck(int row, bool isOn, string txt) =>

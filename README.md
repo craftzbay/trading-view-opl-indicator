@@ -4,7 +4,7 @@ ICT-style TradingView indicator (Pine Script v6).
 
 ## Сурвалжууд
 
-- **Pine v6**, NY timezone (`America/New_York`) hardcoded
+- **Pine v6**, timezone сонгомжтой (General → Timezone, default `America/New_York`; `Exchange` = symbol-ийн бирж)
 - Зөвхөн **intraday** TF (1m–30m)-д OPL ажиллана
 - Бүх timeframe-д HTF Opening Gaps болон Notes/Checklist ажиллана
 
@@ -22,18 +22,19 @@ ICT-style TradingView indicator (Pine Script v6).
 **Priority on overlap**: MONTHLY > WEEKLY > DAILY (smaller skipped if bigger fires).
 
 ### OPENING PRICE LINES
-NY-ийн чухал цагуудын open price түвшинг шугам + label-аар тэмдэглэнэ:
+Сонгосон timezone-ийн чухал цагуудын open price түвшинг шугам + label-аар тэмдэглэнэ.
+4 session нэг л `Opl` model-оор давталтаар зурагдана (hr/mn нь кодод тогтмол):
 
-| Time (NY) | Default | Label |
+| Time | Default | Label (засварлаж болно) |
 |---|---|---|
-| 00:00 | ON | `00:00` |
-| 08:30 | ON | `08:30` |
-| 09:30 | ON | `09:30` |
+| 00:00 | ON  | `00:00` |
+| 08:30 | ON  | `08:30` |
+| 09:30 | ON  | `09:30` |
 | 13:30 | OFF | `01:30` |
 
-- Шугамын төгсгөл `timenow + 1hr` (Terminus)-д татна → бүх label нэг баганад тэгшилнэ
-- Friday non-crypto: шугам Дав 00:00 хүртэл сунгана (амралтын өдрийг алгасна)
-- Logic яг reference (`ICT Everything @coldbrewrosh`)-той ижил
+- Зөвхөн **intraday** (`multiplier ≤ 31`)-д ажиллана
+- Session open-ийг `time`-ийн crossing-аар илрүүлнэ → ямар ч intraday TF дээр найдвартай (зэрэгцээгүй TF дээр ч хамгийн ойрын бараар зурна)
+- Шугамын баруун төгсгөл `timenow + 1hr` (Terminus)-д татагдана → бүх label нэг баганад тэгшилнэ
 
 ### NOTES (Top Center)
 - 2 мөрт текст: Title (size.huge) + Subtitle (size.normal)
@@ -63,6 +64,7 @@ indicator/
 
 ## Pine v6 анхааруулга
 
-- Indent rules: үргэлжлэлийн мөр 4-ийн үржвэр зайтай биш байх
+- Indent rules: үргэлжлэлийн мөр 4-ийн үржвэр зайтай биш байх (options массив 5 зайтай)
 - `bool` strict — `na` болохгүй, explicit cast хэрэгтэй
-- `time == NYOpenTime` хатуу match `timestamp(TZ, year, month, day, hour, min, sec)` ашигласан
+- Session цагийг `timestamp(TZ, year, month, day, hour, min, sec)` + crossing-аар илрүүлнэ
+- OPL объектуудыг `var array<Opl>`-д хадгалж, `Opl` UDT-ийн line/label field-ийг in-place мутаци хийдэг
