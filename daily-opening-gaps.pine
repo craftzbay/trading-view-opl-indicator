@@ -1,6 +1,6 @@
 //@version=6
-// Indicator version: v6.6  (bump on every change; @version above is the Pine language version)
-indicator("Opening Levels — Gaps + OPL v6.6", "OL", overlay=true,
+// Indicator version: v6.7  (bump on every change; @version above is the Pine language version)
+indicator("Opening Levels — Gaps + OPL v6.7", "OL", overlay=true,
           max_lines_count=500, max_boxes_count=500, max_labels_count=100)
 
 // ============================================================
@@ -410,7 +410,7 @@ if barstate.islast
 
     // all block labels on one horizontal level, lifted a little above the global top
     if htfShowLabel and not na(gTop)
-        labY = gTop + (gTop - gBot) * 0.05
+        labY = gTop + (gTop - gBot) * 0.02
         for k = 0 to array.size(labXs) - 1
             array.push(htfLbls, label.new(array.get(labXs, k), labY, text=array.get(labTxt, k), xloc=xloc.bar_index, yloc=yloc.price, style=label.style_label_down, color=color.new(color.gray, 70), textcolor=chart.fg_color, size=size.small))
 
