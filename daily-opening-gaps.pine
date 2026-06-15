@@ -1,5 +1,6 @@
 //@version=6
-indicator("Opening Levels — Gaps + OPL", "OL", overlay=true,
+// Indicator version: v6.1  (bump on every change; @version above is the Pine language version)
+indicator("Opening Levels — Gaps + OPL v6.1", "OL", overlay=true,
           max_lines_count=500, max_boxes_count=500, max_labels_count=100)
 
 // ============================================================
