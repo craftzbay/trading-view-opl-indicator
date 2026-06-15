@@ -49,14 +49,13 @@ ICT-style TradingView indicator (Pine Script v6).
 ### HTF CANDLES
 Дээд timeframe-ийн лаануудыг price action-ы баруун талд зурна (timeframe солихгүйгээр HTF структур харах):
 
-- **5 хүртэл HTF set** — тус бүр checkbox + timeframe + candle count. Дараалал: томоос жижиг рүү (Weekly → Daily → 4H → 1H → 15m)
+- **5 хүртэл HTF set** — тус бүр checkbox + timeframe + candle count (settings-д Weekly→15m дарааллаар)
+- Зураг дээр: **жижиг TF price-д ойр → том TF баруун зах руу** (15m … Weekly)
 - Default: **Daily** (1 лаа), **4H** (3 лаа), **1H** (5 лаа) асаалттай; Weekly + 15m унтраалттай
-- Set бүр өөрийн блокоор зүүнээс (price-д ойр) баруун тийш дараалан байрлана (блок хооронд 3 барын зай)
 - `request.security`-ээр set бүрийн OHLC татаж, сүүлийн N laaг box (body) + line (wick)-ээр зурна
 - Хамгийн баруун лаа = одоо **үүсэж буй** (live) HTF лаа, бодит цагт шинэчлэгдэнэ
-- Ерөнхий тохиргоо (бүх set-д хамаарна): padding (live бараас зай), bull/bear/border/wick өнгө (лааны өргөн=2, зай=1 hardcode), OHLC trace, label
-- **OHLC trace**: set бүрийн сүүлийн лааны O/H/L/C-г price action руу цэгэн шугамаар сунгана
-- **Label**: блок бүрийн дээр HTF timeframe-ийн нэр
+- Ерөнхий тохиргоо: padding (live бараас зай, default 30), bull/bear/border/wick өнгө (лааны өргөн=2, зай=1 hardcode), label
+- **Label**: блок бүрийн дээр TF нэр (`240`→`4H`, `60`→`1H`, `15`→`15m`, D/W/M хэвээр)
 - `barstate.islast`-д бүх object устгаад дахин зурна; Pine-ийн +500 барын future хязгаарт багтаахаар лаа/set-ийг автоматаар таслана
 - ⚠️ HTF-ээ chart TF-ээс **өндөр** сонго (жишээ chart 5m → HTF 1H)
 

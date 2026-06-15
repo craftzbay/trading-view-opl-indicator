@@ -82,14 +82,13 @@ aWid  = input.string("1px",  "", options=["1px","2px","3px","4px","5px"], inline
 //  Inputs: HTF Candles  (higher-timeframe candles drawn to the right of price action)
 // ============================================================
 gHtfC = "HTF Candles"
-htfPad       = input.int(3,  "Padding from last bar", minval=0, group=gHtfC, tooltip="Bars of gap between live price action and the first HTF block")
+htfPad       = input.int(30, "Padding from last bar", minval=0, group=gHtfC, tooltip="Bars of gap between live price action and the first HTF block")
 htfWidth     = 2  // candle body width in bars (fixed)
 htfGap       = 1  // spacing between candles in bars (fixed)
 htfBull      = input.color(#808080, "Bull / Bear / Border / Wick", inline="hc", group=gHtfC)
 htfBear      = input.color(#000000, "", inline="hc", group=gHtfC)
 htfBorderCol = input.color(#000000, "", inline="hc", group=gHtfC)
 htfWickCol   = input.color(#000000, "", inline="hc", group=gHtfC)
-htfShowTrace = input.bool(true, "OHLC trace lines (latest candle of each set)", group=gHtfC)
 htfShowLabel = input.bool(true, "Timeframe labels", group=gHtfC)
 
 // Up to 5 HTF sets — each: enable | timeframe | candle count. Order: largest → smallest.
@@ -149,6 +148,11 @@ oplSession(int hr, int mn) =>
     s = hr * 60 + mn
     e = s + 1
     pad2(int(s / 60)) + pad2(s % 60) + "-" + pad2(int(e / 60)) + pad2(e % 60) + ":1234567"
+
+// Friendly timeframe label: "240" -> "4H", "60" -> "1H", "15" -> "15m", "D"/"W"/"M" as-is
+tfLabel(string tf) =>
+    num = str.tonumber(tf)
+    na(num) ? tf : (int(num) % 60 == 0 ? str.tostring(int(int(num) / 60)) + "H" : str.tostring(int(num)) + "m")
 
 delBoxes(array<box> a) =>
     for b in a
@@ -327,13 +331,14 @@ var s3 = HtfSet.new(h3On, h3Tf, h3N, array.new<float>(), array.new<float>(), arr
 var s4 = HtfSet.new(h4On, h4Tf, h4N, array.new<float>(), array.new<float>(), array.new<float>(), array.new<float>())
 var s5 = HtfSet.new(h5On, h5Tf, h5N, array.new<float>(), array.new<float>(), array.new<float>(), array.new<float>())
 
+// Draw order = smallest TF nearest price → largest TF furthest right (push reversed).
 var array<HtfSet> htfSets = array.new<HtfSet>()
 if barstate.isfirst
-    array.push(htfSets, s1)
-    array.push(htfSets, s2)
-    array.push(htfSets, s3)
-    array.push(htfSets, s4)
     array.push(htfSets, s5)
+    array.push(htfSets, s4)
+    array.push(htfSets, s3)
+    array.push(htfSets, s2)
+    array.push(htfSets, s1)
 
 collectHtf(s1, ta.change(t1) != 0, o1, h1, l1, c1)
 collectHtf(s2, ta.change(t2) != 0, o2, h2, l2, c2)
@@ -343,13 +348,11 @@ collectHtf(s5, ta.change(t5) != 0, o5, h5, l5, c5)
 
 var array<box>   htfBodies = array.new<box>()
 var array<line>  htfWicks  = array.new<line>()
-var array<line>  htfTrace  = array.new<line>()
 var array<label> htfLbls   = array.new<label>()
 
 if barstate.islast
     delBoxes(htfBodies)
     delLines(htfWicks)
-    delLines(htfTrace)
     for lb in htfLbls
         label.delete(lb)
     array.clear(htfLbls)
@@ -380,21 +383,9 @@ if barstate.islast
                 topY := na(topY) ? h : math.max(topY, h)
 
             lLeft = base + (drawN - 1) * step
-            if htfShowTrace
-                last = n - 1
-                lo = array.get(s.O, last)
-                lh = array.get(s.H, last)
-                ll = array.get(s.L, last)
-                lc = array.get(s.C, last)
-                traceCol = color.new(htfWickCol, 35)
-                array.push(htfTrace, line.new(bar_index, lo, lLeft, lo, xloc=xloc.bar_index, color=traceCol, style=line.style_dotted))
-                array.push(htfTrace, line.new(bar_index, lh, lLeft, lh, xloc=xloc.bar_index, color=traceCol, style=line.style_dotted))
-                array.push(htfTrace, line.new(bar_index, ll, lLeft, ll, xloc=xloc.bar_index, color=traceCol, style=line.style_dotted))
-                array.push(htfTrace, line.new(bar_index, lc, lLeft, lc, xloc=xloc.bar_index, color=traceCol, style=line.style_dotted))
-
             if htfShowLabel
                 cx = int((base + lLeft + htfWidth) / 2)
-                array.push(htfLbls, label.new(cx, topY, text=s.tf, xloc=xloc.bar_index, yloc=yloc.price, style=label.style_label_down, color=color.new(color.gray, 70), textcolor=chart.fg_color, size=size.small))
+                array.push(htfLbls, label.new(cx, topY, text=tfLabel(s.tf), xloc=xloc.bar_index, yloc=yloc.price, style=label.style_label_down, color=color.new(color.gray, 70), textcolor=chart.fg_color, size=size.small))
 
             base := lLeft + htfWidth + setGap
 
