@@ -89,9 +89,9 @@ htfPad       = input.int(8,  "Padding from last bar", minval=0, group=gHtfC, too
 htfWidth     = 2  // candle body width in bars (fixed)
 htfGap       = 1  // spacing between candles in bars (fixed)
 htfBull      = input.color(#26a69a, "Bull / Bear / Border / Wick", inline="hc", group=gHtfC)
-htfBear      = input.color(#ef5350, "", inline="hc", group=gHtfC)
-htfBorderCol = input.color(#26a69a, "", inline="hc", group=gHtfC)
-htfWickCol   = input.color(#787b86, "", inline="hc", group=gHtfC)
+htfBear      = input.color(#000000, "", inline="hc", group=gHtfC)
+htfBorderCol = input.color(#000000, "", inline="hc", group=gHtfC)
+htfWickCol   = input.color(#000000, "", inline="hc", group=gHtfC)
 htfShowTrace = input.bool(true, "OHLC trace lines (latest candle)", group=gHtfC)
 htfShowLabel = input.bool(true, "Timeframe label", group=gHtfC)
 
