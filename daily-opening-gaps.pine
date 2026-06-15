@@ -82,7 +82,7 @@ aWid  = input.string("1px",  "", options=["1px","2px","3px","4px","5px"], inline
 //  Inputs: HTF Candles  (higher-timeframe candles drawn to the right of price action)
 // ============================================================
 gHtfC = "HTF Candles"
-htfPad       = input.int(8,  "Padding from last bar", minval=0, group=gHtfC, tooltip="Bars of gap between live price action and the first HTF block")
+htfPad       = input.int(3,  "Padding from last bar", minval=0, group=gHtfC, tooltip="Bars of gap between live price action and the first HTF block")
 htfWidth     = 2  // candle body width in bars (fixed)
 htfGap       = 1  // spacing between candles in bars (fixed)
 htfBull      = input.color(#808080, "Bull / Bear / Border / Wick", inline="hc", group=gHtfC)
@@ -92,22 +92,22 @@ htfWickCol   = input.color(#000000, "", inline="hc", group=gHtfC)
 htfShowTrace = input.bool(true, "OHLC trace lines (latest candle of each set)", group=gHtfC)
 htfShowLabel = input.bool(true, "Timeframe labels", group=gHtfC)
 
-// Up to 5 HTF sets — each: enable | timeframe | candle count
-h1On = input.bool(true,  "HTF1", inline="s1", group=gHtfC)
-h1Tf = input.timeframe("60",  "", inline="s1", group=gHtfC)
-h1N  = input.int(10, "", minval=1, maxval=50, inline="s1", group=gHtfC)
-h2On = input.bool(false, "HTF2", inline="s2", group=gHtfC)
-h2Tf = input.timeframe("240", "", inline="s2", group=gHtfC)
-h2N  = input.int(10, "", minval=1, maxval=50, inline="s2", group=gHtfC)
-h3On = input.bool(false, "HTF3", inline="s3", group=gHtfC)
-h3Tf = input.timeframe("D",   "", inline="s3", group=gHtfC)
-h3N  = input.int(10, "", minval=1, maxval=50, inline="s3", group=gHtfC)
-h4On = input.bool(false, "HTF4", inline="s4", group=gHtfC)
-h4Tf = input.timeframe("W",   "", inline="s4", group=gHtfC)
-h4N  = input.int(8,  "", minval=1, maxval=50, inline="s4", group=gHtfC)
-h5On = input.bool(false, "HTF5", inline="s5", group=gHtfC)
-h5Tf = input.timeframe("M",   "", inline="s5", group=gHtfC)
-h5N  = input.int(6,  "", minval=1, maxval=50, inline="s5", group=gHtfC)
+// Up to 5 HTF sets — each: enable | timeframe | candle count. Order: largest → smallest.
+h1On = input.bool(false, "Weekly", inline="s1", group=gHtfC)
+h1Tf = input.timeframe("W",   "", inline="s1", group=gHtfC)
+h1N  = input.int(4, "", minval=1, maxval=50, inline="s1", group=gHtfC)
+h2On = input.bool(true,  "Daily",  inline="s2", group=gHtfC)
+h2Tf = input.timeframe("D",   "", inline="s2", group=gHtfC)
+h2N  = input.int(1, "", minval=1, maxval=50, inline="s2", group=gHtfC)
+h3On = input.bool(true,  "4H",     inline="s3", group=gHtfC)
+h3Tf = input.timeframe("240", "", inline="s3", group=gHtfC)
+h3N  = input.int(3, "", minval=1, maxval=50, inline="s3", group=gHtfC)
+h4On = input.bool(true,  "1H",     inline="s4", group=gHtfC)
+h4Tf = input.timeframe("60",  "", inline="s4", group=gHtfC)
+h4N  = input.int(5, "", minval=1, maxval=50, inline="s4", group=gHtfC)
+h5On = input.bool(false, "15m",    inline="s5", group=gHtfC)
+h5Tf = input.timeframe("15",  "", inline="s5", group=gHtfC)
+h5N  = input.int(8, "", minval=1, maxval=50, inline="s5", group=gHtfC)
 
 // ============================================================
 //  Inputs: Notes (top center)
@@ -343,7 +343,7 @@ if barstate.islast
     array.clear(htfLbls)
 
     step   = htfWidth + htfGap
-    setGap = 4                       // bars between consecutive HTF blocks
+    setGap = 3                       // bars between consecutive HTF blocks
     base   = bar_index + htfPad
     for s in htfSets
         // stop if we're out of future-draw room (Pine caps lines/boxes at ~+500 bars)

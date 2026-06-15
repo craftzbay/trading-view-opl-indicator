@@ -49,8 +49,9 @@ ICT-style TradingView indicator (Pine Script v6).
 ### HTF CANDLES
 Дээд timeframe-ийн лаануудыг price action-ы баруун талд зурна (timeframe солихгүйгээр HTF структур харах):
 
-- **5 хүртэл HTF set** (HTF1…HTF5) — тус бүр checkbox + timeframe + candle count. Default: HTF1=1H асаалттай, бусад нь унтраалттай (4H/D/W/M)
-- Set бүр өөрийн блокоор зүүнээс баруун тийш дараалан байрлана (блок хооронд 4 барын зай)
+- **5 хүртэл HTF set** — тус бүр checkbox + timeframe + candle count. Дараалал: томоос жижиг рүү (Weekly → Daily → 4H → 1H → 15m)
+- Default: **Daily** (1 лаа), **4H** (3 лаа), **1H** (5 лаа) асаалттай; Weekly + 15m унтраалттай
+- Set бүр өөрийн блокоор зүүнээс (price-д ойр) баруун тийш дараалан байрлана (блок хооронд 3 барын зай)
 - `request.security`-ээр set бүрийн OHLC татаж, сүүлийн N laaг box (body) + line (wick)-ээр зурна
 - Хамгийн баруун лаа = одоо **үүсэж буй** (live) HTF лаа, бодит цагт шинэчлэгдэнэ
 - Ерөнхий тохиргоо (бүх set-д хамаарна): padding (live бараас зай), bull/bear/border/wick өнгө (лааны өргөн=2, зай=1 hardcode), OHLC trace, label
