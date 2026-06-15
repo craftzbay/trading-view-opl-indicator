@@ -1,6 +1,6 @@
 //@version=6
-// Indicator version: v6.7  (bump on every change; @version above is the Pine language version)
-indicator("Opening Levels — Gaps + OPL v6.7", "OL", overlay=true,
+// Indicator version: v6.8  (bump on every change; @version above is the Pine language version)
+indicator("Opening Levels — Gaps + OPL v6.8", "OL", overlay=true,
           max_lines_count=500, max_boxes_count=500, max_labels_count=100)
 
 // ============================================================
@@ -338,11 +338,21 @@ collectHtf(HtfSet s, bool isNew, float o, float h, float l, float c, int tc) =>
 [o4, h4, l4, c4, t4, tc4] = request.security(syminfo.tickerid, h4Tf, [open, high, low, close, time, time_close], lookahead=barmerge.lookahead_off)
 [o5, h5, l5, c5, t5, tc5] = request.security(syminfo.tickerid, h5Tf, [open, high, low, close, time, time_close], lookahead=barmerge.lookahead_off)
 
-var s1 = HtfSet.new(h1On, h1Tf, h1N, array.new<float>(), array.new<float>(), array.new<float>(), array.new<float>())
-var s2 = HtfSet.new(h2On, h2Tf, h2N, array.new<float>(), array.new<float>(), array.new<float>(), array.new<float>())
-var s3 = HtfSet.new(h3On, h3Tf, h3N, array.new<float>(), array.new<float>(), array.new<float>(), array.new<float>())
-var s4 = HtfSet.new(h4On, h4Tf, h4N, array.new<float>(), array.new<float>(), array.new<float>(), array.new<float>())
-var s5 = HtfSet.new(h5On, h5Tf, h5N, array.new<float>(), array.new<float>(), array.new<float>(), array.new<float>())
+// Auto-hide any HTF set whose timeframe is not strictly higher than the chart's:
+// a ≤-chart request.security returns chart data → the block duplicates the chart
+// (e.g. chart 4H shows HTF 1H == 4H; chart 1H makes HTF 1H redundant). #v6.8
+chartSec = timeframe.in_seconds()
+h1Ok = h1On and timeframe.in_seconds(h1Tf) > chartSec
+h2Ok = h2On and timeframe.in_seconds(h2Tf) > chartSec
+h3Ok = h3On and timeframe.in_seconds(h3Tf) > chartSec
+h4Ok = h4On and timeframe.in_seconds(h4Tf) > chartSec
+h5Ok = h5On and timeframe.in_seconds(h5Tf) > chartSec
+
+var s1 = HtfSet.new(h1Ok, h1Tf, h1N, array.new<float>(), array.new<float>(), array.new<float>(), array.new<float>())
+var s2 = HtfSet.new(h2Ok, h2Tf, h2N, array.new<float>(), array.new<float>(), array.new<float>(), array.new<float>())
+var s3 = HtfSet.new(h3Ok, h3Tf, h3N, array.new<float>(), array.new<float>(), array.new<float>(), array.new<float>())
+var s4 = HtfSet.new(h4Ok, h4Tf, h4N, array.new<float>(), array.new<float>(), array.new<float>(), array.new<float>())
+var s5 = HtfSet.new(h5Ok, h5Tf, h5N, array.new<float>(), array.new<float>(), array.new<float>(), array.new<float>())
 
 // Draw order = smallest TF nearest price → largest TF furthest right (push reversed).
 var array<HtfSet> htfSets = array.new<HtfSet>()

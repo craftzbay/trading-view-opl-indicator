@@ -57,7 +57,7 @@ ICT-style TradingView indicator (Pine Script v6).
 - Ерөнхий тохиргоо: padding (live бараас зай, default 30), bull/bear/border/wick өнгө (лааны өргөн=2, зай=1 hardcode), label
 - **Label**: блок бүрийн дээр TF нэр (`240`→`4H`, `60`→`1H`, `15`→`15m`, D/W/M хэвээр)
 - `barstate.islast`-д бүх object устгаад дахин зурна; Pine-ийн +500 барын future хязгаарт багтаахаар лаа/set-ийг автоматаар таслана
-- ⚠️ HTF-ээ chart TF-ээс **өндөр** сонго (жишээ chart 5m → HTF 1H)
+- Chart TF-ээс **доош буюу тэнцүү** HTF set автоматаар нуугдана (`timeframe.in_seconds` харьцуулалт): ≤-chart `request.security` нь chart-ийн датаг буцаадаг тул блок давхардахаас сэргийлнэ (жишээ chart 4H → HTF 1H унтарна, chart 1H → HTF 1H унтарна)
 
 ## Хэрэглэх заавар
 
