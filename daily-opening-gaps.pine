@@ -1,6 +1,6 @@
 //@version=6
-// Indicator version: v6.3  (bump on every change; @version above is the Pine language version)
-indicator("Opening Levels — Gaps + OPL v6.3", "OL", overlay=true,
+// Indicator version: v6.4  (bump on every change; @version above is the Pine language version)
+indicator("Opening Levels — Gaps + OPL v6.4", "OL", overlay=true,
           max_lines_count=500, max_boxes_count=500, max_labels_count=100)
 
 // ============================================================
@@ -85,7 +85,7 @@ aWid  = input.string("1px",  "", options=["1px","2px","3px","4px","5px"], inline
 gHtfC = "HTF Candles"
 htfWidth     = 2  // candle body width in bars (fixed)
 htfGap       = 1  // spacing between candles in bars (fixed)
-htfBull      = input.color(#808080, "Bull / Bear / Border / Wick⠀⠀⠀⠀⠀⠀⠀⠀", inline="hc", group=gHtfC)
+htfBull      = input.color(#808080, "Bull / Bear / Border / Wick⠀⠀⠀⠀⠀⠀⠀⠀⠀", inline="hc", group=gHtfC)
 htfBear      = input.color(#000000, "", inline="hc", group=gHtfC)
 htfBorderCol = input.color(#000000, "", inline="hc", group=gHtfC)
 htfWickCol   = input.color(#000000, "", inline="hc", group=gHtfC)
@@ -108,7 +108,7 @@ h5On = input.bool(false, "HTF5⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀�
 h5Tf = input.timeframe("15",  "", inline="s5", group=gHtfC)
 h5N  = input.int(8, "", minval=1, maxval=50, inline="s5", group=gHtfC)
 
-htfPad = input.int(30, "Padding from last bar⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀", minval=0, group=gHtfC, tooltip="Bars of gap between live price action and the first HTF block")
+htfPad = input.int(30, "Padding from last bar⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀", minval=0, group=gHtfC, tooltip="Bars of gap between live price action and the first HTF block")
 
 // ============================================================
 //  Inputs: Notes (top center)
