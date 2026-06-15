@@ -236,20 +236,29 @@ type Opl
     line   ln = na
     label  lb = na
 
-updateOpl(Opl o) =>
-    if o.show and intraday
-        // Detect the session-open bar via a 1-minute session window evaluated in the
-        // selected timezone. This only matches the actual open bar (e.g. 08:30) and never
-        // a post-gap resume bar, so weekend/maintenance gaps can't false-trigger it.
-        t = time(timeframe.period, oplSession(o.hr, o.mn), Timezone)
-        if not na(t) and na(t[1])
-            if not na(o.ln)
-                line.delete(o.ln)
-            if not na(o.lb)
-                label.delete(o.lb)
-            // Anchor to the real open bar — no date math, no gap edge cases.
-            o.ln := line.new(time, open, time, open, xloc=xloc.bar_time, color=o.col, style=o.sty, width=o.wid)
-            o.lb := label.new(time, open, xloc=xloc.bar_time, text=" " + o.tag + " ", color=color.new(color.black, 100), textcolor=color.black, style=label.style_label_left, size=size.normal)
+// Session-open rising edge for one open time. Uses a 1-minute session window in the
+// selected timezone → only the real open bar (e.g. 08:30), never a post-gap resume bar.
+// Reads t[1] (history), so it MUST be called unconditionally at a fixed site every bar.
+oplOpened(int hr, int mn) =>
+    t = time(timeframe.period, oplSession(hr, mn), Timezone)
+    not na(t) and na(t[1])
+
+// Fixed top-scope call sites — evaluated on every bar (no loop, no conditional).
+mEdge = oplOpened(0,  0)
+nEdge = oplOpened(8,  30)
+eEdge = oplOpened(9,  30)
+aEdge = oplOpened(13, 30)
+
+// Drawing only — no history references, so it is safe to call from a loop/conditional.
+drawOpl(Opl o, bool opened) =>
+    if opened and o.show and intraday
+        if not na(o.ln)
+            line.delete(o.ln)
+        if not na(o.lb)
+            label.delete(o.lb)
+        // Anchor to the real open bar — no date math, no gap edge cases.
+        o.ln := line.new(time, open, time, open, xloc=xloc.bar_time, color=o.col, style=o.sty, width=o.wid)
+        o.lb := label.new(time, open, xloc=xloc.bar_time, text=" " + o.tag + " ", color=color.new(color.black, 100), textcolor=color.black, style=label.style_label_left, size=size.normal)
 
 var array<Opl> opls = array.new<Opl>()
 if barstate.isfirst
@@ -258,8 +267,10 @@ if barstate.isfirst
     array.push(opls, Opl.new(eShow,  9, 30, eCol, toLineStyle(eSty), toWidth(eWid), eTag))
     array.push(opls, Opl.new(aShow, 13, 30, aCol, toLineStyle(aSty), toWidth(aWid), aTag))
 
-for o in opls
-    updateOpl(o)
+drawOpl(array.get(opls, 0), mEdge)
+drawOpl(array.get(opls, 1), nEdge)
+drawOpl(array.get(opls, 2), eEdge)
+drawOpl(array.get(opls, 3), aEdge)
 
 if barstate.islast and intraday
     rightEdge = timenow + 3600000  // now + 1h
@@ -291,16 +302,17 @@ collectHtf(HtfSet s, bool isNew, float o, float h, float l, float c) =>
             array.push(s.H, h)
             array.push(s.L, l)
             array.push(s.C, c)
-            if array.size(s.O) > s.count
-                array.shift(s.O)
-                array.shift(s.H)
-                array.shift(s.L)
-                array.shift(s.C)
         else if array.size(s.O) > 0
             i = array.size(s.O) - 1
             array.set(s.H, i, math.max(array.get(s.H, i), h))
             array.set(s.L, i, math.min(array.get(s.L, i), l))
             array.set(s.C, i, c)
+        // trim to the last `count` candles (while returns void → keeps branch types consistent)
+        while array.size(s.O) > s.count
+            array.shift(s.O)
+            array.shift(s.H)
+            array.shift(s.L)
+            array.shift(s.C)
 
 // request.security needs simple-string timeframes at top scope → one call per set.
 [o1, h1, l1, c1, t1] = request.security(syminfo.tickerid, h1Tf, [open, high, low, close, time], lookahead=barmerge.lookahead_off)
