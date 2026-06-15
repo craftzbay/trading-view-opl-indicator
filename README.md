@@ -49,12 +49,14 @@ ICT-style TradingView indicator (Pine Script v6).
 ### HTF CANDLES
 Дээд timeframe-ийн лаануудыг price action-ы баруун талд зурна (timeframe солихгүйгээр HTF структур харах):
 
-- `request.security`-ээр HTF OHLC татаж, сүүлийн **N** (default 10) laaг box (body) + line (wick)-ээр зурна
+- **5 хүртэл HTF set** (HTF1…HTF5) — тус бүр checkbox + timeframe + candle count. Default: HTF1=1H асаалттай, бусад нь унтраалттай (4H/D/W/M)
+- Set бүр өөрийн блокоор зүүнээс баруун тийш дараалан байрлана (блок хооронд 4 барын зай)
+- `request.security`-ээр set бүрийн OHLC татаж, сүүлийн N laaг box (body) + line (wick)-ээр зурна
 - Хамгийн баруун лаа = одоо **үүсэж буй** (live) HTF лаа, бодит цагт шинэчлэгдэнэ
-- Тохиргоо: timeframe, лааны тоо, padding (live бараас зай), bull/bear/border/wick өнгө (лааны өргөн=2, зай=1 hardcode)
-- **OHLC trace**: сүүлийн лааны O/H/L/C-г price action руу цэгэн шугамаар сунгана
-- **Label**: блокийн дээр HTF timeframe-ийн нэр
-- Зөвхөн `barstate.islast`-д бүгдийг устгаад дахин зурдаг тул object тоо тогтмол (N body + N wick + 4 trace + 1 label)
+- Ерөнхий тохиргоо (бүх set-д хамаарна): padding (live бараас зай), bull/bear/border/wick өнгө (лааны өргөн=2, зай=1 hardcode), OHLC trace, label
+- **OHLC trace**: set бүрийн сүүлийн лааны O/H/L/C-г price action руу цэгэн шугамаар сунгана
+- **Label**: блок бүрийн дээр HTF timeframe-ийн нэр
+- `barstate.islast`-д бүх object устгаад дахин зурна; Pine-ийн +500 барын future хязгаарт багтаахаар лаа/set-ийг автоматаар таслана
 - ⚠️ HTF-ээ chart TF-ээс **өндөр** сонго (жишээ chart 5m → HTF 1H)
 
 ## Хэрэглэх заавар

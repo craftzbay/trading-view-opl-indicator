@@ -82,18 +82,32 @@ aWid  = input.string("1px",  "", options=["1px","2px","3px","4px","5px"], inline
 //  Inputs: HTF Candles  (higher-timeframe candles drawn to the right of price action)
 // ============================================================
 gHtfC = "HTF Candles"
-showHtfC     = input.bool(true,   "Show HTF candles", group=gHtfC)
-htfTf        = input.timeframe("60", "Timeframe", group=gHtfC)
-htfCount     = input.int(10, "Candle count", minval=1, maxval=50, group=gHtfC)
-htfPad       = input.int(8,  "Padding from last bar", minval=0, group=gHtfC, tooltip="Bars of gap between live price action and the HTF candles")
+htfPad       = input.int(8,  "Padding from last bar", minval=0, group=gHtfC, tooltip="Bars of gap between live price action and the first HTF block")
 htfWidth     = 2  // candle body width in bars (fixed)
 htfGap       = 1  // spacing between candles in bars (fixed)
 htfBull      = input.color(#808080, "Bull / Bear / Border / Wick", inline="hc", group=gHtfC)
 htfBear      = input.color(#000000, "", inline="hc", group=gHtfC)
 htfBorderCol = input.color(#000000, "", inline="hc", group=gHtfC)
 htfWickCol   = input.color(#000000, "", inline="hc", group=gHtfC)
-htfShowTrace = input.bool(true, "OHLC trace lines (latest candle)", group=gHtfC)
-htfShowLabel = input.bool(true, "Timeframe label", group=gHtfC)
+htfShowTrace = input.bool(true, "OHLC trace lines (latest candle of each set)", group=gHtfC)
+htfShowLabel = input.bool(true, "Timeframe labels", group=gHtfC)
+
+// Up to 5 HTF sets — each: enable | timeframe | candle count
+h1On = input.bool(true,  "HTF1", inline="s1", group=gHtfC)
+h1Tf = input.timeframe("60",  "", inline="s1", group=gHtfC)
+h1N  = input.int(10, "", minval=1, maxval=50, inline="s1", group=gHtfC)
+h2On = input.bool(false, "HTF2", inline="s2", group=gHtfC)
+h2Tf = input.timeframe("240", "", inline="s2", group=gHtfC)
+h2N  = input.int(10, "", minval=1, maxval=50, inline="s2", group=gHtfC)
+h3On = input.bool(false, "HTF3", inline="s3", group=gHtfC)
+h3Tf = input.timeframe("D",   "", inline="s3", group=gHtfC)
+h3N  = input.int(10, "", minval=1, maxval=50, inline="s3", group=gHtfC)
+h4On = input.bool(false, "HTF4", inline="s4", group=gHtfC)
+h4Tf = input.timeframe("W",   "", inline="s4", group=gHtfC)
+h4N  = input.int(8,  "", minval=1, maxval=50, inline="s4", group=gHtfC)
+h5On = input.bool(false, "HTF5", inline="s5", group=gHtfC)
+h5Tf = input.timeframe("M",   "", inline="s5", group=gHtfC)
+h5N  = input.int(6,  "", minval=1, maxval=50, inline="s5", group=gHtfC)
 
 // ============================================================
 //  Inputs: Notes (top center)
@@ -256,87 +270,121 @@ if barstate.islast and intraday
 
 // ============================================================
 //  HTF Candles
-//  Pull OHLC from a higher timeframe and redraw the last N completed
-//  (+ forming) HTF candles as boxes (body) + lines (wick) to the right
-//  of the current price action. Optional OHLC traces + timeframe label.
+//  Up to 5 higher-timeframe sets, each drawn as boxes (body) + lines
+//  (wick) in its own block to the right of price action, left→right.
+//  Optional OHLC traces + per-set timeframe label.
 // ============================================================
-[hO, hH, hL, hC, hT] = request.security(syminfo.tickerid, htfTf, [open, high, low, close, time], lookahead=barmerge.lookahead_off)
-htfNew = ta.change(hT) != 0
+type HtfSet
+    bool   show
+    string tf
+    int    count
+    array<float> O
+    array<float> H
+    array<float> L
+    array<float> C
 
-var array<float> aO = array.new<float>()
-var array<float> aH = array.new<float>()
-var array<float> aL = array.new<float>()
-var array<float> aC = array.new<float>()
+// Accumulate the last `count` HTF candles for one set (newest = forming candle).
+collectHtf(HtfSet s, bool isNew, float o, float h, float l, float c) =>
+    if s.show
+        if isNew
+            array.push(s.O, o)
+            array.push(s.H, h)
+            array.push(s.L, l)
+            array.push(s.C, c)
+            if array.size(s.O) > s.count
+                array.shift(s.O)
+                array.shift(s.H)
+                array.shift(s.L)
+                array.shift(s.C)
+        else if array.size(s.O) > 0
+            i = array.size(s.O) - 1
+            array.set(s.H, i, math.max(array.get(s.H, i), h))
+            array.set(s.L, i, math.min(array.get(s.L, i), l))
+            array.set(s.C, i, c)
 
-if showHtfC
-    if htfNew
-        array.push(aO, hO)
-        array.push(aH, hH)
-        array.push(aL, hL)
-        array.push(aC, hC)
-        if array.size(aO) > htfCount
-            array.shift(aO)
-            array.shift(aH)
-            array.shift(aL)
-            array.shift(aC)
-    else if array.size(aO) > 0
-        i = array.size(aO) - 1
-        array.set(aH, i, math.max(array.get(aH, i), hH))
-        array.set(aL, i, math.min(array.get(aL, i), hL))
-        array.set(aC, i, hC)
+// request.security needs simple-string timeframes at top scope → one call per set.
+[o1, h1, l1, c1, t1] = request.security(syminfo.tickerid, h1Tf, [open, high, low, close, time], lookahead=barmerge.lookahead_off)
+[o2, h2, l2, c2, t2] = request.security(syminfo.tickerid, h2Tf, [open, high, low, close, time], lookahead=barmerge.lookahead_off)
+[o3, h3, l3, c3, t3] = request.security(syminfo.tickerid, h3Tf, [open, high, low, close, time], lookahead=barmerge.lookahead_off)
+[o4, h4, l4, c4, t4] = request.security(syminfo.tickerid, h4Tf, [open, high, low, close, time], lookahead=barmerge.lookahead_off)
+[o5, h5, l5, c5, t5] = request.security(syminfo.tickerid, h5Tf, [open, high, low, close, time], lookahead=barmerge.lookahead_off)
 
-var array<box>  htfBodies = array.new<box>()
-var array<line> htfWicks  = array.new<line>()
-var array<line> htfTrace  = array.new<line>()
-var label       htfLbl    = na
+var s1 = HtfSet.new(h1On, h1Tf, h1N, array.new<float>(), array.new<float>(), array.new<float>(), array.new<float>())
+var s2 = HtfSet.new(h2On, h2Tf, h2N, array.new<float>(), array.new<float>(), array.new<float>(), array.new<float>())
+var s3 = HtfSet.new(h3On, h3Tf, h3N, array.new<float>(), array.new<float>(), array.new<float>(), array.new<float>())
+var s4 = HtfSet.new(h4On, h4Tf, h4N, array.new<float>(), array.new<float>(), array.new<float>(), array.new<float>())
+var s5 = HtfSet.new(h5On, h5Tf, h5N, array.new<float>(), array.new<float>(), array.new<float>(), array.new<float>())
 
-if barstate.islast and showHtfC and array.size(aO) > 0
+var array<HtfSet> htfSets = array.new<HtfSet>()
+if barstate.isfirst
+    array.push(htfSets, s1)
+    array.push(htfSets, s2)
+    array.push(htfSets, s3)
+    array.push(htfSets, s4)
+    array.push(htfSets, s5)
+
+collectHtf(s1, ta.change(t1) != 0, o1, h1, l1, c1)
+collectHtf(s2, ta.change(t2) != 0, o2, h2, l2, c2)
+collectHtf(s3, ta.change(t3) != 0, o3, h3, l3, c3)
+collectHtf(s4, ta.change(t4) != 0, o4, h4, l4, c4)
+collectHtf(s5, ta.change(t5) != 0, o5, h5, l5, c5)
+
+var array<box>   htfBodies = array.new<box>()
+var array<line>  htfWicks  = array.new<line>()
+var array<line>  htfTrace  = array.new<line>()
+var array<label> htfLbls   = array.new<label>()
+
+if barstate.islast
     delBoxes(htfBodies)
     delLines(htfWicks)
     delLines(htfTrace)
-    if not na(htfLbl)
-        label.delete(htfLbl)
+    for lb in htfLbls
+        label.delete(lb)
+    array.clear(htfLbls)
 
-    n        = array.size(aO)
-    step     = htfWidth + htfGap
-    base     = bar_index + htfPad
-    // Pine can't draw past +500 bars into the future — keep the newest candles that fit
-    maxFit   = math.max(1, int((490 - htfPad) / step))
-    drawN    = math.min(n, maxFit)
-    startIdx = n - drawN
-    float topY = na
+    step   = htfWidth + htfGap
+    setGap = 4                       // bars between consecutive HTF blocks
+    base   = bar_index + htfPad
+    for s in htfSets
+        // stop if we're out of future-draw room (Pine caps lines/boxes at ~+500 bars)
+        if s.show and array.size(s.O) > 0 and base - bar_index < 470
+            n        = array.size(s.O)
+            maxFit   = math.max(1, int((490 - (base - bar_index)) / step))
+            drawN    = math.min(n, maxFit)
+            startIdx = n - drawN
+            float topY = na
+            for i = 0 to drawN - 1
+                src   = startIdx + i
+                o = array.get(s.O, src)
+                h = array.get(s.H, src)
+                l = array.get(s.L, src)
+                c = array.get(s.C, src)
+                left  = base + i * step
+                right = left + htfWidth
+                mid   = int((left + right) / 2)
+                col   = c >= o ? htfBull : htfBear
+                array.push(htfWicks, line.new(mid, h, mid, l, xloc=xloc.bar_index, color=htfWickCol, width=1))
+                array.push(htfBodies, box.new(left, math.max(o, c), right, math.min(o, c), xloc=xloc.bar_index, bgcolor=col, border_color=htfBorderCol))
+                topY := na(topY) ? h : math.max(topY, h)
 
-    for i = 0 to drawN - 1
-        src   = startIdx + i
-        o = array.get(aO, src)
-        h = array.get(aH, src)
-        l = array.get(aL, src)
-        c = array.get(aC, src)
-        left  = base + i * step
-        right = left + htfWidth
-        mid   = int((left + right) / 2)
-        col   = c >= o ? htfBull : htfBear
-        array.push(htfWicks, line.new(mid, h, mid, l, xloc=xloc.bar_index, color=htfWickCol, width=1))
-        array.push(htfBodies, box.new(left, math.max(o, c), right, math.min(o, c), xloc=xloc.bar_index, bgcolor=col, border_color=htfBorderCol))
-        topY := na(topY) ? h : math.max(topY, h)
+            lLeft = base + (drawN - 1) * step
+            if htfShowTrace
+                last = n - 1
+                lo = array.get(s.O, last)
+                lh = array.get(s.H, last)
+                ll = array.get(s.L, last)
+                lc = array.get(s.C, last)
+                traceCol = color.new(htfWickCol, 35)
+                array.push(htfTrace, line.new(bar_index, lo, lLeft, lo, xloc=xloc.bar_index, color=traceCol, style=line.style_dotted))
+                array.push(htfTrace, line.new(bar_index, lh, lLeft, lh, xloc=xloc.bar_index, color=traceCol, style=line.style_dotted))
+                array.push(htfTrace, line.new(bar_index, ll, lLeft, ll, xloc=xloc.bar_index, color=traceCol, style=line.style_dotted))
+                array.push(htfTrace, line.new(bar_index, lc, lLeft, lc, xloc=xloc.bar_index, color=traceCol, style=line.style_dotted))
 
-    // OHLC traces from the newest (rightmost) HTF candle back to live price action
-    if htfShowTrace
-        last  = n - 1
-        lo    = array.get(aO, last)
-        lh    = array.get(aH, last)
-        ll    = array.get(aL, last)
-        lc    = array.get(aC, last)
-        lLeft = base + (drawN - 1) * step
-        traceCol = color.new(htfWickCol, 35)
-        array.push(htfTrace, line.new(bar_index, lo, lLeft, lo, xloc=xloc.bar_index, color=traceCol, style=line.style_dotted))
-        array.push(htfTrace, line.new(bar_index, lh, lLeft, lh, xloc=xloc.bar_index, color=traceCol, style=line.style_dotted))
-        array.push(htfTrace, line.new(bar_index, ll, lLeft, ll, xloc=xloc.bar_index, color=traceCol, style=line.style_dotted))
-        array.push(htfTrace, line.new(bar_index, lc, lLeft, lc, xloc=xloc.bar_index, color=traceCol, style=line.style_dotted))
+            if htfShowLabel
+                cx = int((base + lLeft + htfWidth) / 2)
+                array.push(htfLbls, label.new(cx, topY, text=s.tf, xloc=xloc.bar_index, yloc=yloc.price, style=label.style_label_down, color=color.new(color.gray, 70), textcolor=chart.fg_color, size=size.small))
 
-    if htfShowLabel
-        cx = int((base + (base + (drawN - 1) * step + htfWidth)) / 2)
-        htfLbl := label.new(cx, topY, text=htfTf, xloc=xloc.bar_index, yloc=yloc.price, style=label.style_label_down, color=color.new(color.gray, 70), textcolor=chart.fg_color, size=size.small)
+            base := lLeft + htfWidth + setGap
 
 // ============================================================
 //  Notes (top center)
