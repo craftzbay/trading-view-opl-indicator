@@ -1,6 +1,6 @@
 //@version=6
-// Indicator version: v6.4  (bump on every change; @version above is the Pine language version)
-indicator("Opening Levels — Gaps + OPL v6.4", "OL", overlay=true,
+// Indicator version: v6.5  (bump on every change; @version above is the Pine language version)
+indicator("Opening Levels — Gaps + OPL v6.5", "OL", overlay=true,
           max_lines_count=500, max_boxes_count=500, max_labels_count=100)
 
 // ============================================================
@@ -156,6 +156,15 @@ tfLabel(string tf) =>
     num = str.tonumber(tf)
     na(num) ? tf : (int(num) % 60 == 0 ? str.tostring(int(int(num) / 60)) + "H" : str.tostring(int(num)) + "m")
 
+// Compact countdown from milliseconds: "1d 6h" / "3h 45m" / "23m 12s"
+fmtCountdown(int ms) =>
+    sec = int(ms / 1000)
+    d = int(sec / 86400)
+    h = int((sec % 86400) / 3600)
+    m = int((sec % 3600) / 60)
+    s = sec % 60
+    d > 0 ? str.tostring(d) + "d " + str.tostring(h) + "h" : (h > 0 ? str.tostring(h) + "h " + str.tostring(m) + "m" : str.tostring(m) + "m " + str.tostring(s) + "s")
+
 delBoxes(array<box> a) =>
     for b in a
         box.delete(b)
@@ -299,10 +308,12 @@ type HtfSet
     array<float> H
     array<float> L
     array<float> C
+    int    tcNow = 0   // close time (ms) of the current forming HTF bar
 
 // Accumulate the last `count` HTF candles for one set (newest = forming candle).
-collectHtf(HtfSet s, bool isNew, float o, float h, float l, float c) =>
+collectHtf(HtfSet s, bool isNew, float o, float h, float l, float c, int tc) =>
     if s.show
+        s.tcNow := tc
         if isNew
             array.push(s.O, o)
             array.push(s.H, h)
@@ -321,11 +332,11 @@ collectHtf(HtfSet s, bool isNew, float o, float h, float l, float c) =>
             array.shift(s.C)
 
 // request.security needs simple-string timeframes at top scope → one call per set.
-[o1, h1, l1, c1, t1] = request.security(syminfo.tickerid, h1Tf, [open, high, low, close, time], lookahead=barmerge.lookahead_off)
-[o2, h2, l2, c2, t2] = request.security(syminfo.tickerid, h2Tf, [open, high, low, close, time], lookahead=barmerge.lookahead_off)
-[o3, h3, l3, c3, t3] = request.security(syminfo.tickerid, h3Tf, [open, high, low, close, time], lookahead=barmerge.lookahead_off)
-[o4, h4, l4, c4, t4] = request.security(syminfo.tickerid, h4Tf, [open, high, low, close, time], lookahead=barmerge.lookahead_off)
-[o5, h5, l5, c5, t5] = request.security(syminfo.tickerid, h5Tf, [open, high, low, close, time], lookahead=barmerge.lookahead_off)
+[o1, h1, l1, c1, t1, tc1] = request.security(syminfo.tickerid, h1Tf, [open, high, low, close, time, time_close], lookahead=barmerge.lookahead_off)
+[o2, h2, l2, c2, t2, tc2] = request.security(syminfo.tickerid, h2Tf, [open, high, low, close, time, time_close], lookahead=barmerge.lookahead_off)
+[o3, h3, l3, c3, t3, tc3] = request.security(syminfo.tickerid, h3Tf, [open, high, low, close, time, time_close], lookahead=barmerge.lookahead_off)
+[o4, h4, l4, c4, t4, tc4] = request.security(syminfo.tickerid, h4Tf, [open, high, low, close, time, time_close], lookahead=barmerge.lookahead_off)
+[o5, h5, l5, c5, t5, tc5] = request.security(syminfo.tickerid, h5Tf, [open, high, low, close, time, time_close], lookahead=barmerge.lookahead_off)
 
 var s1 = HtfSet.new(h1On, h1Tf, h1N, array.new<float>(), array.new<float>(), array.new<float>(), array.new<float>())
 var s2 = HtfSet.new(h2On, h2Tf, h2N, array.new<float>(), array.new<float>(), array.new<float>(), array.new<float>())
@@ -342,11 +353,11 @@ if barstate.isfirst
     array.push(htfSets, s2)
     array.push(htfSets, s1)
 
-collectHtf(s1, ta.change(t1) != 0, o1, h1, l1, c1)
-collectHtf(s2, ta.change(t2) != 0, o2, h2, l2, c2)
-collectHtf(s3, ta.change(t3) != 0, o3, h3, l3, c3)
-collectHtf(s4, ta.change(t4) != 0, o4, h4, l4, c4)
-collectHtf(s5, ta.change(t5) != 0, o5, h5, l5, c5)
+collectHtf(s1, ta.change(t1) != 0, o1, h1, l1, c1, tc1)
+collectHtf(s2, ta.change(t2) != 0, o2, h2, l2, c2, tc2)
+collectHtf(s3, ta.change(t3) != 0, o3, h3, l3, c3, tc3)
+collectHtf(s4, ta.change(t4) != 0, o4, h4, l4, c4, tc4)
+collectHtf(s5, ta.change(t5) != 0, o5, h5, l5, c5, tc5)
 
 var array<box>   htfBodies = array.new<box>()
 var array<line>  htfWicks  = array.new<line>()
@@ -388,8 +399,10 @@ if barstate.islast
 
             lLeft = base + (drawN - 1) * step
             if htfShowLabel
+                rem = s.tcNow - timenow
+                cd  = na(rem) or rem <= 0 ? "" : "\n" + fmtCountdown(rem)
                 array.push(labXs, int((base + lLeft + htfWidth) / 2))
-                array.push(labTxt, tfLabel(s.tf))
+                array.push(labTxt, tfLabel(s.tf) + cd)
 
             base := lLeft + htfWidth + setGap
 
